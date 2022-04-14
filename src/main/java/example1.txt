@@ -1,0 +1,7 @@
+def int sum(int a, int b)
+    int c = a + b
+    return c
+def float sum(int a,int b)
+    int c = a + b
+    return c
+int a = 3

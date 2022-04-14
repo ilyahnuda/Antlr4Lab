@@ -1,0 +1,26 @@
+
+public class Test{
+	private static Test test = new Test();
+	public static int sum(int a,int b){
+	int c = a+b;
+	return c;}
+
+
+ public static void main(String[] args){
+	int a = 3;
+	int b = (int)4.0;
+	sum(a,b);
+	while(a<10){
+		a = a+1;
+	}
+
+	if(a==3){
+		System.out.println(a);
+	}
+	else{
+		a = 3;
+	}
+
+	}
+
+}

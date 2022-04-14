@@ -1,0 +1,12 @@
+def int sum(int a, int b)
+    int c = a + b
+    return c
+int a = 3
+int b = (int)4.0
+sum(a, b)
+while(a < 10)
+    a = a + 1
+if(a != 3)
+    print(a)
+else
+    a = 3
