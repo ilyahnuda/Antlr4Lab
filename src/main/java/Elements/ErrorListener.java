@@ -1,11 +1,5 @@
 package Elements;
 
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-
-import java.util.List;
-
 public class ErrorListener  {
 
     public ErrorListener(String name){
@@ -25,11 +19,11 @@ public class ErrorListener  {
         System.exit(0);
     }
     public  static  void callErrorIncorrectTypeRes(String type1,String type2){
-        System.out.println("Not provided types :("+type1+","+type2+")");
+        System.out.println("Not provided types in func :("+type1+","+type2+")");
         System.exit(0);
     }
-    public static void callErrorIncorrectCast(String expr,String type){
-        System.out.println("Cast error:"+expr+";\n"+type);
+    public static void callErrorIncorrectCast(String expr,String type,String type2){
+        System.out.println("Cast error:"+expr+";\n Cannot cast from "+type2+" to "+type);
         System.exit(0);
     }
     public static void callErrorOverload(String func){

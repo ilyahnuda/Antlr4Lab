@@ -24,13 +24,17 @@ public class MyWalker extends testBaseVisitor<Base> {
                 Function s = visitFunction(i);
                 functions.add(s);
             }
-            Program.stack__id = new ArrayList<>();
+            declarations=new ArrayList<>();
         }
         if (ctx.statement().size() > 0) {
             for (testParser.StatementContext i : ctx.statement()) {
                 Statement s = visitStatement(i);
                 if (s == null)
                     continue;
+                if (s.getClass().equals(Declaration.class)) {
+                    Semantic.checkContext(declarations, (Declaration) s);
+                    declarations.add((Declaration) s);
+                }
                 statements.add(s);
             }
         }
@@ -104,6 +108,7 @@ public class MyWalker extends testBaseVisitor<Base> {
         int counter=0;
         for (testParser.StatementContext i : ctx.statement()) {
             Statement s = visitStatement(i);
+            System.out.println(s);
             if (s.getClass().equals(Declaration.class)) {
                 Semantic.checkContext(declarations, (Declaration) s);
                 declarations.add((Declaration) s);
@@ -146,6 +151,9 @@ public class MyWalker extends testBaseVisitor<Base> {
     public WhileCicle visitWhileCycle(testParser.WhileCycleContext ctx) {
         List<Statement> statements = new ArrayList<>();
         int counter=0;
+        for(Declaration d:declarations){
+            System.out.println(d);
+        }
         for (testParser.StatementContext i : ctx.statement()) {
             Statement s = visitStatement(i);
             if (s.getClass().equals(Declaration.class)) {
@@ -172,7 +180,12 @@ public class MyWalker extends testBaseVisitor<Base> {
         FunctionHeader header = visitFunctionHeader(ctx.functionHeader());
         List<Statement> statements = new ArrayList<>();
         for (int i = 0; i < ctx.statement().size(); i++) {
-            statements.add(visitStatement(ctx.statement().get(i)));
+            Statement s=visitStatement(ctx.statement().get(i));
+            if (s.getClass().equals(Declaration.class)) {
+                Semantic.checkContext(declarations, (Declaration) s);
+                declarations.add((Declaration) s);
+            }
+            statements.add(s);
         }
         return new Function(header, statements, visitExpressionMath(ctx.expressionMath()));
 
@@ -193,7 +206,6 @@ public class MyWalker extends testBaseVisitor<Base> {
         List<Parameter> st = new ArrayList<>();
         for (int i = 0; i < ctx.type().size(); i++) {
             Parameter s = new Parameter(ctx.type(i).getText(), ctx.ID(i).getText());
-            System.out.println(s);
             st.add(s);
         }
         return new FunctionParameter(st);

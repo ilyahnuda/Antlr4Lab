@@ -1,9 +1,7 @@
 package Elements;
 
+import wallker.MyWalker;
 import wallker.Semantic;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Declaration extends Statement{
     private String type;
@@ -16,7 +14,7 @@ public class Declaration extends Statement{
         this.secondType=secondType;
         this.statement=st;
         this.name=name;
-        Semantic.checkDoubleDeclaration(name,toString());
+        Semantic.checkDoubleDeclaration(name);
         String secondTypes;
         if(secondType!=null){
             secondTypes=secondType;
@@ -25,11 +23,6 @@ public class Declaration extends Statement{
             secondTypes=st.type;
         }
         Semantic.checkCorrectCast(type,secondTypes,toString());
-        Program.stack_id.add(this.name);
-        List<String> buf =new ArrayList<>();
-        buf.add(name);
-        buf.add(type);
-        Program.stack__id.add(buf);
     }
     @Override
     public String toString(){

@@ -2,9 +2,6 @@ package Elements;
 
 import wallker.MyWalker;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ExpressionMath extends Statement{
     private String expr;
     public String type;
@@ -13,9 +10,9 @@ public class ExpressionMath extends Statement{
         this.kind="id";
         this.expr=str;
 
-        for(var i : Program.stack__id){
-            if(i.get(0).equals(expr)){
-                this.type=i.get(1);
+        for(var i : MyWalker.declarations){
+            if(i.getName().equals(expr)){
+                this.type=i.getType();
             }
         }
     }

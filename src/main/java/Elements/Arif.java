@@ -16,6 +16,7 @@ public class Arif extends ExpressionMath {
         if(!left.type.equals(right.type)){
             ErrorListener.callErrorIncorrectTypeRes(left.type, right.type);
         }
+        super.type=left.type;
     }
     @Override
     public String toString(){

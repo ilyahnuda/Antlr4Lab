@@ -18,7 +18,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         CharStream inputStream = null;
         try {
-            inputStream = CharStreams.fromFileName("D:\\JavaPr\\APIS\\src\\main\\java\\example2");
+            inputStream = CharStreams.fromFileName("D:\\JavaPr\\APIS\\src\\main\\java\\example");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -31,7 +31,6 @@ public class Main {
         var tree = parser.program();
 
         Program result = walker.visitProgram(tree);
-
         toJava(result.toString(), Paths.get("D:\\JavaPr\\APIS\\src\\main\\java\\Test.java"));
 
 

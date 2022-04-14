@@ -51,21 +51,24 @@ public class Semantic {
     public static void checkCorrectCast(String type,String secondType,String expression){
         if(secondType!=null){
             if(!type.equals(secondType)){
-                ErrorListener.callErrorIncorrectCast(expression,type);
+                ErrorListener.callErrorIncorrectCast(expression,type,secondType);
             }
         }
     }
 
-    public static void checkDoubleDeclaration(String name,String expr){
+    public static void checkDoubleDeclaration(String name){
         if(Program.stack_id.contains(name)){
-            ErrorListener.callErrorAssign(name,expr);
+            ErrorListener.callErrorContext(name);
         }
     }
 
     public static void checkCorrectAssignment(String name,String expr){
-        if(!Program.stack_id.contains(name)){
-            ErrorListener.callErrorAssign(name,expr);
+        for(Declaration d:MyWalker.declarations){
+            if(d.getName().equals(name)){
+                return;
+            }
         }
+        ErrorListener.callErrorAssign(name,expr);
     }
 
 }
