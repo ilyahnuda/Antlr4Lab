@@ -18,11 +18,10 @@ public class Main {
     public static void main(String[] args) throws Exception {
         CharStream inputStream = null;
         try {
-            inputStream = CharStreams.fromFileName("D:\\JavaPr\\APIS\\src\\main\\java\\example");
+            inputStream = CharStreams.fromFileName("D:\\JavaPr\\APIS\\src\\main\\java\\example2");
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         testLexer lexer = new testLexer(inputStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         testParser parser = new testParser(tokens);
@@ -32,7 +31,10 @@ public class Main {
 
         Program result = walker.visitProgram(tree);
         toJava(result.toString(), Paths.get("D:\\JavaPr\\APIS\\src\\main\\java\\Test.java"));
-
+        int i=0;
+        for(;i<10;i++){
+            System.out.println("s");
+        }
 
     }
 

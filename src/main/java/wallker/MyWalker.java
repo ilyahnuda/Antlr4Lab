@@ -12,34 +12,116 @@ public class MyWalker extends testBaseVisitor<Base> {
     public static List<Function> functions;
     public static List<Statement> statements;
     public static List<Declaration> declarations;
+    public static List<Declaration> global;
+    List<testParser.StatementContext> global_contex = new ArrayList<>();
+    public void findInSubStat(testParser.StatementContext ctx) {
+
+        if (ctx.whileCycle() != null) {
+            for (testParser.StatementContext w : ctx.whileCycle().statement()) {
+                if (w.declaration() != null) {
+                    if (w.declaration().GLOBAL() != null) {
+                        global.add(visitDeclaration(w.declaration()));
+                        global_contex.add(w);
+                    }
+                } else if (w.whileCycle() != null) {
+                    findInSubStat(w);
+                } else if (w.ifStatement() != null) {
+                    findInSubStat(w);
+                }
+            }
+        } else if (ctx.ifStatement() != null) {
+            for (testParser.StatementContext w : ctx.ifStatement().statement()) {
+                if (w.declaration() != null) {
+                    if (w.declaration().GLOBAL() != null) {
+                        global.add(visitDeclaration(w.declaration()));
+                        global_contex.add(w);
+                    } else if (w.whileCycle() != null) {
+                        findInSubStat(w);
+                    } else if (w.ifStatement() != null) {
+                        findInSubStat(w);
+                    }
+                }
+            }
+            if (ctx.ifStatement().elseStatement() != null) {
+                for (testParser.StatementContext w : ctx.ifStatement().elseStatement().statement()) {
+                    if (w.declaration() != null) {
+                        if (w.declaration().GLOBAL() != null) {
+                            global.add(visitDeclaration(w.declaration()));
+                            global_contex.add(w);
+                        } else if (w.whileCycle() != null) {
+                            findInSubStat(w);
+                        } else if (w.ifStatement() != null) {
+                            findInSubStat(w);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public void findGlobal(testParser.ProgramContext ctx) {
+        for (testParser.FunctionContext fC : ctx.function()) {
+            for (testParser.StatementContext s : fC.statement()) {
+                if (s.declaration() != null) {
+                    if (s.declaration().GLOBAL() != null) {
+                        global.add(visitDeclaration(s.declaration()));
+                        global_contex.add(s);
+                    }
+                } else if (s.whileCycle() != null) {
+                    findInSubStat(s);
+                } else if (s.ifStatement() != null) {
+                    findInSubStat(s);
+                }
+            }
+        }
+        for (testParser.StatementContext s : ctx.statement()) {
+            if (s.declaration() != null) {
+                if (s.declaration().GLOBAL() != null) {
+                    global.add(visitDeclaration(s.declaration()));
+                    global_contex.add(s);
+                }
+            } else if (s.whileCycle() != null) {
+                findInSubStat(s);
+            } else if (s.ifStatement() != null) {
+                findInSubStat(s);
+            }
+        }
+    }
 
     @Override
     public Program visitProgram(testParser.ProgramContext ctx) {
 
+        global = new ArrayList<>();
         functions = new ArrayList<>();
         statements = new ArrayList<>();
         declarations = new ArrayList<>();
+        findGlobal(ctx);
         if (ctx.function().size() > 0) {
             for (testParser.FunctionContext i : ctx.function()) {
                 Function s = visitFunction(i);
                 functions.add(s);
             }
-            declarations=new ArrayList<>();
+            declarations = new ArrayList<>();
         }
         if (ctx.statement().size() > 0) {
             for (testParser.StatementContext i : ctx.statement()) {
-                Statement s = visitStatement(i);
-                if (s == null)
-                    continue;
-                if (s.getClass().equals(Declaration.class)) {
-                    Semantic.checkContext(declarations, (Declaration) s);
-                    declarations.add((Declaration) s);
+                if (!global_contex.contains(i)) {
+                    Statement s = visitStatement(i);
+                    if (s == null)
+                        continue;
+                    if (s.getClass().equals(Declaration.class)) {
+                        if (((Declaration) s).isGlobal) {
+                            continue;
+                        }
+                        Semantic.checkContext(declarations, ((Declaration) s).getName());
+                        declarations.add((Declaration) s);
+                    }
+                    statements.add(s);
                 }
-                statements.add(s);
             }
         }
 
-        return new Program(functions, statements);
+        return new Program(functions, statements, global);
     }
 
     @Override
@@ -99,25 +181,41 @@ public class MyWalker extends testBaseVisitor<Base> {
         if (ctx.type().size() > 1) {
             str = ctx.type().get(1).getText();
         }
-        return new Declaration(ctx.type().get(0).getText(), visitExpressionMath(ctx.expressionMath()), str, ctx.ID().getText());
+        String global1 = null;
+        if (ctx.GLOBAL() != null) {
+            global1 = ctx.GLOBAL().getText();
+            for (Declaration d : global) {
+                if (d.getName().equals(ctx.ID().getText())) {
+                    ErrorListener.callErrorContext(d.getName());
+                }
+            }
+        }
+        String cons = null;
+        if (ctx.CONST() != null) {
+            cons = ctx.CONST().getText();
+        }
+        return new Declaration(ctx.type().get(0).getText(), visitExpressionMath(ctx.expressionMath()), str, ctx.ID().getText(), global1, cons);
     }
 
     @Override
     public If visitIfStatement(testParser.IfStatementContext ctx) {
         List<Statement> statements = new ArrayList<>();
-        int counter=0;
+        int counter = 0;
         for (testParser.StatementContext i : ctx.statement()) {
             Statement s = visitStatement(i);
-            System.out.println(s);
             if (s.getClass().equals(Declaration.class)) {
-                Semantic.checkContext(declarations, (Declaration) s);
-                declarations.add((Declaration) s);
-                counter++;
+                Semantic.checkContext(declarations, ((Declaration) s).getName());
+                if (((Declaration) s).isGlobal) {
+                    MyWalker.global.add((Declaration) s);
+                } else {
+                    declarations.add((Declaration) s);
+                    counter++;
+                }
             }
             statements.add(s);
         }
-        for(int i=0;i<counter;i++){
-            declarations.remove(declarations.size()-1-i);
+        for (int i = 0; i < counter; i++) {
+            declarations.remove(declarations.size() - 1 - i);
         }
         IfHeader ifH = visitIfHeader(ctx.ifHeader());
         ElseStatement elseStatement = null;
@@ -150,21 +248,18 @@ public class MyWalker extends testBaseVisitor<Base> {
     @Override
     public WhileCicle visitWhileCycle(testParser.WhileCycleContext ctx) {
         List<Statement> statements = new ArrayList<>();
-        int counter=0;
-        for(Declaration d:declarations){
-            System.out.println(d);
-        }
+        int counter = 0;
         for (testParser.StatementContext i : ctx.statement()) {
             Statement s = visitStatement(i);
             if (s.getClass().equals(Declaration.class)) {
-                Semantic.checkContext(declarations, (Declaration) s);
+                Semantic.checkContext(declarations, ((Declaration) s).getName());
                 declarations.add((Declaration) s);
                 counter++;
             }
             statements.add(s);
         }
-        for(int i=0;i<counter;i++){
-            declarations.remove(declarations.size()-1-i);
+        for (int i = 0; i < counter; i++) {
+            declarations.remove(declarations.size() - 1 - i);
         }
         WhileHeader header = visitWhileHeader(ctx.whileHeader());
         return new WhileCicle(header, statements);
@@ -180,10 +275,14 @@ public class MyWalker extends testBaseVisitor<Base> {
         FunctionHeader header = visitFunctionHeader(ctx.functionHeader());
         List<Statement> statements = new ArrayList<>();
         for (int i = 0; i < ctx.statement().size(); i++) {
-            Statement s=visitStatement(ctx.statement().get(i));
+            Statement s = visitStatement(ctx.statement().get(i));
             if (s.getClass().equals(Declaration.class)) {
-                Semantic.checkContext(declarations, (Declaration) s);
-                declarations.add((Declaration) s);
+                Semantic.checkContext(declarations, ((Declaration) s).getName());
+                if (((Declaration) s).isGlobal) {
+                    MyWalker.global.add((Declaration) s);
+                } else {
+                    declarations.add((Declaration) s);
+                }
             }
             statements.add(s);
         }
@@ -223,19 +322,24 @@ public class MyWalker extends testBaseVisitor<Base> {
     @Override
     public ElseStatement visitElseStatement(testParser.ElseStatementContext ctx) {
         List<Statement> statements = new ArrayList<>();
-        int counter=0;
+        int counter = 0;
         for (testParser.StatementContext i : ctx.statement()) {
             Statement s = visitStatement(i);
             if (s.getClass().equals(Declaration.class)) {
-                Semantic.checkContext(declarations, (Declaration) s);
-                declarations.add((Declaration) s);
-                counter++;
+                Semantic.checkContext(declarations, ((Declaration) s).getName());
+                if (((Declaration) s).isGlobal) {
+                    MyWalker.global.add((Declaration) s);
+                } else {
+                    declarations.add((Declaration) s);
+                    counter++;
+                }
             }
             statements.add(s);
         }
-        for(int i=0;i<counter;i++){
-            declarations.remove(declarations.size()-1-i);
+        for (int i = 0; i < counter; i++) {
+            declarations.remove(declarations.size() - 1 - i);
         }
         return new ElseStatement(statements);
     }
+
 }

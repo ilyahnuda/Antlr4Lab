@@ -12,7 +12,7 @@ public class Parameter {
     public  Parameter(String type,String name){
         this.type=type;
         this.name=name;
-        Declaration d=new Declaration(type,new NUMBER("0"),null,name);
+        Declaration d=new Declaration(type,new NUMBER("0"),null,name,null,null);
         MyWalker.declarations.add(d);
 
     }

@@ -27,20 +27,18 @@ public class BoolExpr extends Base {
 
     public BoolExpr(ExpressionMath left, String compare, ExpressionMath right) {
         this.left = left;
-        Declaration left1 = new Declaration(left.type, left, null, left.getExpr());
         if (MyWalker.declarations.size() == 0) {
-            ErrorListener.callErrorDeclaration(left1.getName());
+            ErrorListener.callErrorDeclaration(left.getExpr());
         }
         if (left.kind.equals("id")) {
-            System.out.println(left1.getName());
-            Semantic.checkContext(MyWalker.declarations, left1);
+            System.out.println(left.getExpr());
+            Semantic.checkCorrectAssignment(left.getExpr(),left.kind);
         }
-        Declaration right1 = new Declaration(right.type, right, null, right.getExpr());
         if (MyWalker.declarations.size() == 0) {
-            ErrorListener.callErrorDeclaration(right1.getName());
+            ErrorListener.callErrorDeclaration( right.getExpr());
         }
         if (right.kind.equals("id")) {
-            Semantic.checkContext(MyWalker.declarations, right1);
+            Semantic.checkCorrectAssignment(right.getExpr(),right.kind);
         }
         this.compare = compare;
         this.right = right;

@@ -15,10 +15,10 @@ public class Semantic {
         }
     }
 
-    public static void checkContext(List<Declaration> subProgram, Declaration d) {
+    public static void checkContext(List<Declaration> subProgram, String name) {
         for (Declaration s : subProgram) {
-            if (d.getName().equals(s.getName())) {
-                ErrorListener.callErrorContext(d.getName());
+            if (name.equals(s.getName())) {
+                ErrorListener.callErrorContext(name);
             }
         }
     }
@@ -57,14 +57,27 @@ public class Semantic {
     }
 
     public static void checkDoubleDeclaration(String name){
-        if(Program.stack_id.contains(name)){
-            ErrorListener.callErrorContext(name);
+        for(Declaration d : MyWalker.declarations){
+            if(d.getName().equals(name)){
+                ErrorListener.callErrorContext(name);
+            }
         }
     }
 
     public static void checkCorrectAssignment(String name,String expr){
         for(Declaration d:MyWalker.declarations){
             if(d.getName().equals(name)){
+                if(d.isConst){
+                    ErrorListener.callErrorAssignConst(d.getName());
+                }
+                return;
+            }
+        }
+        for(Declaration s:MyWalker.global){
+            if (name.equals(s.getName())) {
+                if(s.isConst){
+                    ErrorListener.callErrorAssignConst(s.getName());
+                }
                 return;
             }
         }

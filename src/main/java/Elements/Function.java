@@ -26,7 +26,10 @@ public class Function extends Base {
         p.append(functionHeader.toString());
         p.append("{\n\t");
         for (Statement statement : statements) {
-            p.append(statement.toString());
+            if(((Declaration) statement).isGlobal){
+                continue;
+            }
+            p.append(statement);
             p.append("\n\t");
         }
         p.append("return ").append(res.toString()).append(";");

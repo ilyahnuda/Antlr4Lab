@@ -34,4 +34,8 @@ public class ErrorListener  {
         System.out.println("We already have this var:"+name);
         System.exit(0);
     }
+    public static void callErrorAssignConst(String name){
+        System.out.println("Error.You cannot change value for const var:"+name);
+        System.exit(0);
+    }
 }

@@ -13,6 +13,13 @@ public class ExpressionMath extends Statement{
         for(var i : MyWalker.declarations){
             if(i.getName().equals(expr)){
                 this.type=i.getType();
+                return;
+            }
+        }
+        for(var i : MyWalker.global){
+            if(i.getName().equals(expr)){
+                this.type=i.getType();
+                return;
             }
         }
     }
